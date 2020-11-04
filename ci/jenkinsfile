@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+    stages {
+        stage('Newman Test') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh '''
+                    cd api/newman
+                    newman run modulo3_examen_KeveenBonilla.postman_collection.json -e url_examen.postman_environment.json               
+                    cd ..
+                    cd ..
+                    '''
+                }
+            }
+        }
+        stage('RestAssured Test') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh '''
+                        cd api/restassure
+                        mvn clean test
+                        cd ..
+                        cd ..
+                        '''
+                }
+            }              
+        }
+        stage('Jmeter Test') {
+            steps {
+                sh '''
+                cd load
+                export PATH=/home/pjcalvov/jmeter/apache-jmeter-5.3/bin:$PATH
+                jmeter -n -t Modulo3_Examen.jmx 
+                '''
+            }
+        }
+    }
+}
